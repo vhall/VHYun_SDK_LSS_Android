@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/tv_appid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="10dp" />
+    <RadioGroup
+        android:id="@+id/rg_dpi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/rb_dpi_480"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="480p"
+            android:layout_weight="1"/>
+        <RadioButton
+            android:id="@+id/rb_dpi_720"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="720p"
+            android:checked="true"
+            android:layout_weight="1"/>
+        <RadioButton
+            android:id="@+id/rb_dpi_1080"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="1080p"
+            android:layout_weight="1"/>
+    </RadioGroup>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FrameRate:"/>
+        <EditText
+            android:id="@+id/edt_frame_rate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:inputType="number"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BitRate"/>
+        <EditText
+            android:id="@+id/edt_bit_rate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="number"/>
+    </LinearLayout>
+    <EditText
+        android:id="@+id/edt_room_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="room id(lss_***)"/>
+    <EditText
+        android:id="@+id/edt_vod_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="vodId"/>
+    <EditText
+        android:id="@+id/edt_token"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="token"/>
+    <Button
+        android:id="@+id/btn_push"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="push"
+        android:text="发直播" />
+
+    <Button
+        android:id="@+id/btn_play_live"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="playlive"
+        android:text="看直播" />
+
+    <Button
+        android:id="@+id/btn_screen_record"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="showScreenRecord"
+        android:text="录屏直播" />
+
+    <Button
+        android:id="@+id/btn_play_vod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="playvod"
+        android:text="看录播" />
+</LinearLayout>

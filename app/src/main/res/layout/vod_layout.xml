@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#000000">
+
+        <com.vhall.player.vod.VodPlayerView
+            android:id="@+id/surfaceview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <!--<SurfaceView-->
+            <!--android:id="@+id/surfaceview"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent" />-->
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp">
+
+            <SeekBar
+                android:id="@+id/seekbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tv_pos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/seekbar" />
+
+            <TextView
+                android:id="@+id/tv_max"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/seekbar" />
+
+            <ImageView
+                android:id="@+id/btn_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:clickable="true"
+                android:onClick="play"
+                android:src="@mipmap/icon_start_bro" />
+
+            <ProgressBar
+                android:id="@+id/pb_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+
+        <RadioGroup
+            android:id="@+id/rg_dpi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal">
+
+        </RadioGroup>
+
+
+        <ImageView
+            android:id="@+id/iv_about_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:onClick="aboutSpeed"
+            android:src="@drawable/ic_chevron_right_white_24dp" />
+
+        <RadioGroup
+            android:id="@+id/rg_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/iv_about_speed"
+            android:background="#8fffffff"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/rb_speed1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="0.25" />
+
+            <RadioButton
+                android:id="@+id/rb_speed2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="0.5" />
+
+            <RadioButton
+                android:id="@+id/rb_speed3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="0.75" />
+
+            <RadioButton
+                android:id="@+id/rb_speed4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:checked="true"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="正常" />
+
+            <RadioButton
+                android:id="@+id/rb_speed5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="1.25" />
+
+            <RadioButton
+                android:id="@+id/rb_speed6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="1.5" />
+
+            <RadioButton
+                android:id="@+id/rb_speed7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="1.75" />
+
+            <RadioButton
+                android:id="@+id/rb_speed8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableLeft="@drawable/selector_check_circle_black"
+                android:text="2" />
+        </RadioGroup>
+
+        <ImageView
+            android:id="@+id/iv_screen_shot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:onClick="screenShot"
+            android:padding="10dp"
+            android:src="@drawable/ic_image_white_24dp" />
+
+        <CheckBox
+            android:id="@+id/switch_free_seek"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/iv_screen_shot"
+            android:checked="true"
+            android:text="FreeSeek"
+            android:textColor="#5fffffff" />
+        <TextView
+            android:id="@+id/tv_scale_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="fitXY"
+            android:textColor="#ffffff"
+            android:padding="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_above="@id/iv_screen_shot"/>
+
+
+        <RadioGroup
+            android:id="@+id/rg_water_mark_gravity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <RadioButton
+                android:id="@+id/rb_water_mark_c"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="c"
+                android:textColor="#ffffff"/>
+
+            <RadioButton
+                android:id="@+id/rb_water_mark_t"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="t"
+                android:textColor="#ffffff"/>
+
+            <RadioButton
+                android:id="@+id/rb_water_mark_b"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="b"
+                android:textColor="#ffffff"/>
+        </RadioGroup>
+        <ImageView
+            android:id="@+id/iv_screen_show"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:onClick="screenImageOnClick"
+            android:layout_alignParentBottom="true"
+            android:visibility="gone"
+            android:scaleType="fitCenter" />
+    </RelativeLayout>
+
+
+
+
+</LinearLayout>
