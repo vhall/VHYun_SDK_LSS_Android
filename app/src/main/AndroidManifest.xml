@@ -3,7 +3,6 @@
     package="com.vhallyun.lss">
 
 
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -23,18 +22,28 @@
         </activity>
         <activity
             android:name=".watchlive.LivePlayerActivity"
-            android:configChanges="keyboardHidden|screenSize|orientation"/>
+            android:configChanges="keyboardHidden|screenSize|orientation" />
         <activity
             android:name=".push.PushActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
 
-        <activity android:name=".watchplayback.VodPlayerActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".screenRecord.ScreenRecordActivity"
-            android:launchMode="singleTask"/>
+        <activity
+            android:name=".watchplayback.VodPlayerActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".screenRecord.ScreenRecordActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".watchlive.LivePlayerUiActivity"
+            android:configChanges="keyboardHidden|screenSize|orientation"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".watchplayback.VodPlayerUiActivity"
+            android:configChanges="keyboardHidden|screenSize|orientation"
+            android:screenOrientation="portrait" />
 
 
         <service android:name=".screenRecord.ScreenService" />

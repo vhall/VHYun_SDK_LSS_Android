@@ -21,7 +21,9 @@ import com.vhall.push.VHLivePushFormat;
 import com.vhallyun.lss.push.PushActivity;
 import com.vhallyun.lss.screenRecord.ScreenRecordActivity;
 import com.vhallyun.lss.watchlive.LivePlayerActivity;
+import com.vhallyun.lss.watchlive.LivePlayerUiActivity;
 import com.vhallyun.lss.watchplayback.VodPlayerActivity;
+import com.vhallyun.lss.watchplayback.VodPlayerUiActivity;
 
 import static android.Manifest.permission.CAMERA;
 import static android.Manifest.permission.RECORD_AUDIO;
@@ -135,6 +137,24 @@ public class MainActivity extends Activity {
         startAct(intent);
     }
 
+
+    public void uiPlayLive(View view) {
+        roomId = edtLssId.getText().toString().trim();
+        editor.putString(KEY_LSS_ID,roomId);
+        channelId = roomId;
+        Intent intent = new Intent(this, LivePlayerUiActivity.class);
+        startAct(intent);
+    }
+
+    public void uiPlayVod(View view) {
+        vodId = edtVodId.getText().toString().trim();
+        editor.putString(KEY_VOD_ID,vodId);
+        channelId = vodId;
+        Intent intent = new Intent(this, VodPlayerUiActivity.class);
+        startAct(intent);
+
+    }
+
     private boolean getPushPermission(int requestCode) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
@@ -193,6 +213,7 @@ public class MainActivity extends Activity {
         intent.putExtra("token", token);
         startActivity(intent);
     }
+
 
 
 }

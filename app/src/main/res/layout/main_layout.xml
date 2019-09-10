@@ -104,4 +104,16 @@
         android:layout_height="wrap_content"
         android:onClick="playvod"
         android:text="看录播" />
+    <Button
+        android:id="@+id/btn_play_live_ui"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="皮肤看直播"
+        android:onClick="uiPlayLive"/>
+    <Button
+        android:id="@+id/btn_play_vod_ui"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="皮肤看回放"
+        android:onClick="uiPlayVod"/>
 </LinearLayout>
