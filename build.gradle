@@ -19,6 +19,13 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven{
+            url 'https://raw.githubusercontent.com/vhall/VHLibs_SDK_Android/master'
+        }
+
+        maven {
+            url 'http://4thline.org/m2'
+        }
     }
 }
 

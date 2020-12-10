@@ -9,11 +9,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.vhall.framework.VhallSDK;
 import com.vhall.framework.utils.SignatureUtil;
+import com.vhall.jni.VhallLiveApi;
+import com.vhall.logmanager.L;
+import com.vhall.logmanager.LogReporter;
 
 
 import static android.Manifest.permission.READ_PHONE_STATE;
@@ -27,7 +31,8 @@ public class SplashActivity extends AppCompatActivity {
     private static final int REQUEST_READ_PHONE_STATE = 0;
     EditText mEditAppid;
     EditText mEditUserid;
-    TextView tvPackageName, tvSignatures;
+    CheckBox checkBox;
+    TextView tvPackageName,tvSignatures;
 
 
     @Override
@@ -38,10 +43,11 @@ public class SplashActivity extends AppCompatActivity {
         mEditUserid = this.findViewById(R.id.et_userid);
         mEditAppid.setText("");
         mEditUserid.setText(Build.MODEL);//String.valueOf(System.currentTimeMillis())
+        checkBox = findViewById(R.id.cb_env);
         tvPackageName = findViewById(R.id.tv_package_name);
         tvPackageName.setText(getPackageName());
         tvSignatures = findViewById(R.id.tv_signatures);
-        tvSignatures.setText(SignatureUtil.getSignatureSHA1(this));
+        tvSignatures.setText(SignatureUtil.getSignatureSHA1(this, ""));
         getPermission();
 
     }

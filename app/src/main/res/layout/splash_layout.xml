@@ -20,6 +20,12 @@
         android:padding="5dp"
         android:text="1545806653070" />
 
+    <CheckBox
+        android:id="@+id/cb_env"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="release" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

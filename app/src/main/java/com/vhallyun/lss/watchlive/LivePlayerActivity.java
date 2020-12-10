@@ -1,13 +1,20 @@
 package com.vhallyun.lss.watchlive;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -16,6 +23,8 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.vhall.business_support.dlna.DMCControl;
+import com.vhall.business_support.dlna.DeviceDisplay;
 import com.vhall.logmanager.L;
 import com.vhall.lss.play.VHLivePlayer;
 import com.vhall.player.Constants;
@@ -23,9 +32,22 @@ import com.vhall.player.VHPlayerListener;
 import com.vhall.player.stream.play.IVHVideoPlayer;
 import com.vhall.player.stream.play.impl.VHVideoPlayerView;
 import com.vhallyun.lss.R;
+import com.vhallyun.lss.widgets.DevicePopu;
 
+import org.fourthline.cling.android.AndroidUpnpService;
+import org.fourthline.cling.android.AndroidUpnpServiceImpl;
+import org.fourthline.cling.android.FixedAndroidLogHandler;
+import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.model.meta.LocalDevice;
+import org.fourthline.cling.model.meta.RemoteDevice;
+import org.fourthline.cling.model.types.DeviceType;
+import org.fourthline.cling.model.types.UDADeviceType;
+import org.fourthline.cling.registry.DefaultRegistryListener;
+import org.fourthline.cling.registry.Registry;
 import org.json.JSONArray;
 import org.json.JSONException;
+
+import java.util.Collection;
 
 
 /**
@@ -45,12 +67,13 @@ public class LivePlayerActivity extends Activity {
     //view
     ImageView mPlayBtn, ivScreen;
     ProgressBar mLoadingPB;
-    TextView mSpeedTV;
+    TextView mSpeedTV, tvCount;
     //    private DPIPopu popu;
     RadioGroup mDPIGroup;
     //TODO delete
     LinearLayout ll_urls;
     Handler handler = new Handler();
+    private int count = -1;
 
 
     @Override
@@ -69,6 +92,7 @@ public class LivePlayerActivity extends Activity {
         mLoadingPB = this.findViewById(R.id.pb_loading);
         mSpeedTV = this.findViewById(R.id.tv_speed);
         ivScreen = findViewById(R.id.iv_screen_show);
+        tvCount = findViewById(R.id.tv_buffer_time_count);
         mDPIGroup.setOnCheckedChangeListener(new OnCheckedChange());
         mVideoPlayer.setDrawMode(Constants.VideoMode.DRAW_MODE_ASPECTFIT);
         mPlayer = new VHLivePlayer.Builder()
@@ -76,6 +100,16 @@ public class LivePlayerActivity extends Activity {
                 .listener(new MyListener())
                 .build();
         mPlayer.start(roomId, accessToken);
+
+        //TODO 投屏相关
+        org.seamless.util.logging.LoggingUtil.resetRootHandler(
+                new FixedAndroidLogHandler()
+        );
+        this.bindService(
+                new Intent(this, AndroidUpnpServiceImpl.class),
+                serviceConnection,
+                Context.BIND_AUTO_CREATE
+        );
     }
 
     public void screenImageOnClick(View view) {
@@ -94,6 +128,10 @@ public class LivePlayerActivity extends Activity {
                 }
             });
         }
+    }
+
+    public void onProjectionScreen(View view) {
+        showDevices();
     }
 
     private class OnCheckedChange implements RadioGroup.OnCheckedChangeListener {
@@ -155,6 +193,7 @@ public class LivePlayerActivity extends Activity {
                     break;
                 case BUFFER:
                     mLoadingPB.setVisibility(View.VISIBLE);
+                    tvCount.setText(++count + "");
                     break;
                 case STOP:
                     mLoadingPB.setVisibility(View.GONE);
@@ -255,4 +294,134 @@ public class LivePlayerActivity extends Activity {
         }
 
     }
+
+
+    //TODO 投屏相关
+//    ------------------------------------------------------投屏相关--------------------------------------------------
+    private LivePlayerActivity.BrowseRegistryListener registryListener = new LivePlayerActivity.BrowseRegistryListener();
+    private DevicePopu devicePopu;
+    private AndroidUpnpService upnpService;
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.e("Service ", "mUpnpServiceConnection onServiceConnected");
+            upnpService = (AndroidUpnpService) service;
+            // Clear the list
+            if (devicePopu != null) {
+                devicePopu.clear();
+            }
+            // Get ready for future device advertisements
+            upnpService.getRegistry().addListener(registryListener);
+            // Now add all devices to the list we already know about
+            for (Device device : upnpService.getRegistry().getDevices()) {
+                registryListener.deviceAdded(device);
+            }
+            // Search asynchronously for all devices, they will respond soon
+            upnpService.getControlPoint().search(); // 搜索设备
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+            upnpService = null;
+        }
+    };
+
+    protected class BrowseRegistryListener extends DefaultRegistryListener {
+
+        @Override
+        public void remoteDeviceDiscoveryStarted(Registry registry, RemoteDevice device) {
+//            deviceAdded(device);
+        }
+
+        @Override
+        public void remoteDeviceDiscoveryFailed(Registry registry, final RemoteDevice device, final Exception ex) {
+
+        }
+        /* End of optimization, you can remove the whole block if your Android handset is fast (>= 600 Mhz) */
+
+        @Override
+        public void remoteDeviceAdded(Registry registry, RemoteDevice device) {
+            if (device.getType().getNamespace().equals("schemas-upnp-org") && device.getType().getType().equals("MediaRenderer")) {
+                deviceAdded(device);
+            }
+
+        }
+
+        @Override
+        public void remoteDeviceRemoved(Registry registry, RemoteDevice device) {
+            deviceRemoved(device);
+        }
+
+        @Override
+        public void localDeviceAdded(Registry registry, LocalDevice device) {
+//            deviceAdded(device);
+        }
+
+        @Override
+        public void localDeviceRemoved(Registry registry, LocalDevice device) {
+//            deviceRemoved(device);
+        }
+
+        public void deviceAdded(final Device device) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (devicePopu == null) {
+                        devicePopu = new DevicePopu(LivePlayerActivity.this);
+                        devicePopu.setOnItemClickListener(new LivePlayerActivity.OnItemClick());
+                    }
+                    devicePopu.deviceAdded(device);
+                }
+            });
+        }
+
+        public void deviceRemoved(final Device device) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (devicePopu == null) {
+                        devicePopu = new DevicePopu(LivePlayerActivity.this);
+                        devicePopu.setOnItemClickListener(new LivePlayerActivity.OnItemClick());
+                    }
+                    devicePopu.deviceRemoved(device);
+                }
+            });
+        }
+    }
+
+    class OnItemClick implements AdapterView.OnItemClickListener {
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            final DeviceDisplay deviceDisplay = (DeviceDisplay) parent.getItemAtPosition(position);
+            DMCControl dmcControl = new DMCControl(deviceDisplay, upnpService, mPlayer.getOriginalUrl(), mPlayer.getProjectionScreen());
+            devicePopu.setDmcControl(dmcControl);
+        }
+    }
+
+    public static final DeviceType DMR_DEVICE_TYPE = new UDADeviceType("MediaRenderer");
+
+    public Collection<Device> getDmrDevices() {
+        if (upnpService == null) {
+            return null;
+        }
+        Collection<Device> devices = upnpService.getRegistry().getDevices(DMR_DEVICE_TYPE);
+        return devices;
+    }
+
+    public void showDevices() {
+        if (devicePopu == null) {
+            devicePopu = new DevicePopu(this);
+            devicePopu.setOnItemClickListener(new LivePlayerActivity.OnItemClick());
+        }
+        devicePopu.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
+    }
+
+    public void dismissDevices() {
+        if (devicePopu != null) {
+            devicePopu.dismiss();
+        }
+    }
+
 }

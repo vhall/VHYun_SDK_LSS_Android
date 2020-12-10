@@ -1,15 +1,24 @@
 package com.vhallyun.lss.watchplayback;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -20,16 +29,33 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
+import com.vhall.business_support.dlna.DMCControl;
+import com.vhall.business_support.dlna.DeviceDisplay;
 import com.vhall.logmanager.L;
 import com.vhall.player.Constants;
 import com.vhall.player.VHPlayerListener;
 import com.vhall.player.vod.VodPlayerView;
 import com.vhall.vod.VHVodPlayer;
 import com.vhallyun.lss.R;
+import com.vhallyun.lss.widgets.DevicePopu;
+import com.vhallyun.lss.widgets.LangDialog;
 
+import org.fourthline.cling.android.AndroidUpnpService;
+import org.fourthline.cling.android.AndroidUpnpServiceImpl;
+import org.fourthline.cling.android.FixedAndroidLogHandler;
+import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.model.meta.LocalDevice;
+import org.fourthline.cling.model.meta.RemoteDevice;
+import org.fourthline.cling.model.types.DeviceType;
+import org.fourthline.cling.model.types.UDADeviceType;
+import org.fourthline.cling.registry.DefaultRegistryListener;
+import org.fourthline.cling.registry.Registry;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -46,7 +72,7 @@ public class VodPlayerActivity extends Activity {
     private boolean mPlaying = false;
     ImageView mPlayBtn, ivAboutSpeed;
     ProgressBar mLoadingPB;
-    SeekBar mSeekbar;
+    PointSeekbar mSeekbar;
     TextView mPosView, mMaxView;
     RadioGroup mDPIGroup;
     //data
@@ -59,6 +85,8 @@ public class VodPlayerActivity extends Activity {
     private RadioGroup markGravityGroup;
     private TextView scaleType;
     private int curScaleType = Constants.VideoMode.DRAW_MODE_NONE;
+    private TextView subtitleView;
+    private LangDialog dialog;
 
     private Handler handler = new Handler() {
         @Override
@@ -83,7 +111,33 @@ public class VodPlayerActivity extends Activity {
         mPlayer = new VHVodPlayer(this);
         mPlayer.setDisplay(mSurfaceView);
         mPlayer.setListener(new MyPlayer());
+//        mPlayer.setSubtitleCallback(new VHVodPlayer.SubtitleCallback() {
+//            @Override
+//            public void onSubtitle(String subtitle) {
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if (TextUtils.isEmpty(subtitle)) {
+//                            subtitleView.setText("");
+//                        } else {
+//                            subtitleView.setText(subtitle);
+//                        }
+//                    }
+//                });
+//            }
+//        });
         handlePosition();
+
+        //TODO 投屏相关
+        org.seamless.util.logging.LoggingUtil.resetRootHandler(
+                new FixedAndroidLogHandler()
+        );
+        this.bindService(
+                new Intent(this, AndroidUpnpServiceImpl.class),
+                serviceConnection,
+                Context.BIND_AUTO_CREATE
+        );
+
     }
 
     private void initView() {
@@ -101,6 +155,21 @@ public class VodPlayerActivity extends Activity {
         ivImageShow = findViewById(R.id.iv_screen_show);
         markGravityGroup = findViewById(R.id.rg_water_mark_gravity);
         scaleType = findViewById(R.id.tv_scale_type);
+
+        subtitleView = findViewById(R.id.subtitle_view);
+
+        findViewById(R.id.iv_dlna_playback).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDevices();
+            }
+        });
+
+        mSeekbar.setOnPointClickListener(pointInfo -> {
+            findViewById(R.id.pointView).setVisibility(View.VISIBLE);
+            PointView pointView = findViewById(R.id.pointView);
+            pointView.showInfo(pointInfo);
+        });
 
         scaleType.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -278,6 +347,12 @@ public class VodPlayerActivity extends Activity {
         }
     }
 
+    public void onSubtitleClick(View view) {
+        if (dialog != null) {
+            dialog.show();
+        }
+    }
+
     class MyPlayer implements VHPlayerListener {
 
         @Override
@@ -285,7 +360,6 @@ public class VodPlayerActivity extends Activity {
             switch (state) {
                 case BUFFER:
                     mLoadingPB.setVisibility(View.VISIBLE);
-
                     break;
                 case START:
                     int max = (int) mPlayer.getDuration();
@@ -309,6 +383,33 @@ public class VodPlayerActivity extends Activity {
         @Override
         public void onEvent(int event, String msg) {
             switch (event) {
+                case Constants.Event.EVENT_CUE_POINT://vod 打点数据
+                    if (!TextUtils.isEmpty(msg)) {
+                        List<PointInfo> infos = JSON.parseArray(msg, PointInfo.class);
+                        mSeekbar.setPoints(infos);
+                    }
+                    break;
+                case Constants.Event.EVENT_SUBTITLE_INFO://vod 字幕数据
+                    if (!TextUtils.isEmpty(msg)) {
+                        List<String> subtitles = JSON.parseArray(msg, String.class);
+                        dialog = new LangDialog(VodPlayerActivity.this, subtitles, new LangDialog.Callback() {
+                            @Override
+                            public void onLang(String lang) {
+                                mPlayer.setSubtitle(lang);
+                            }
+
+                            @Override
+                            public void onShow(boolean show) {
+                                if (mSurfaceView != null) {
+                                    mSurfaceView.showDefaultSubtitle(show);
+                                }
+                            }
+                        });
+                        for (String subtitle : subtitles) {
+                            Log.d("zhx", "onEvent: EVENT_SUBTITLE_INFO" + subtitle);
+                        }
+                    }
+                    break;
                 case Constants.Event.EVENT_INIT_SUCCESS://初始化成功
                     isInit = true;
                     mPlayer.start();
@@ -402,6 +503,7 @@ public class VodPlayerActivity extends Activity {
             timer.cancel();
             timer = null;
         }
+        unbindService(serviceConnection);
     }
 
     //每秒获取一下进度
@@ -435,6 +537,135 @@ public class VodPlayerActivity extends Activity {
             return strHour + ":" + strMinute + ":" + strSecond;
         } else {
             return "00:" + strMinute + ":" + strSecond;
+        }
+    }
+
+
+    //TODO 投屏相关
+//    ------------------------------------------------------投屏相关--------------------------------------------------
+    private BrowseRegistryListener registryListener = new BrowseRegistryListener();
+    private DevicePopu devicePopu;
+    private AndroidUpnpService upnpService;
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.e("Service ", "mUpnpServiceConnection onServiceConnected");
+            upnpService = (AndroidUpnpService) service;
+            // Clear the list
+            if (devicePopu != null) {
+                devicePopu.clear();
+            }
+            // Get ready for future device advertisements
+            upnpService.getRegistry().addListener(registryListener);
+            // Now add all devices to the list we already know about
+            for (Device device : upnpService.getRegistry().getDevices()) {
+                registryListener.deviceAdded(device);
+            }
+            // Search asynchronously for all devices, they will respond soon
+            upnpService.getControlPoint().search(); // 搜索设备
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+            upnpService = null;
+        }
+    };
+
+    protected class BrowseRegistryListener extends DefaultRegistryListener {
+
+        @Override
+        public void remoteDeviceDiscoveryStarted(Registry registry, RemoteDevice device) {
+//            deviceAdded(device);
+        }
+
+        @Override
+        public void remoteDeviceDiscoveryFailed(Registry registry, final RemoteDevice device, final Exception ex) {
+
+        }
+        /* End of optimization, you can remove the whole block if your Android handset is fast (>= 600 Mhz) */
+
+        @Override
+        public void remoteDeviceAdded(Registry registry, RemoteDevice device) {
+            if (device.getType().getNamespace().equals("schemas-upnp-org") && device.getType().getType().equals("MediaRenderer")) {
+                deviceAdded(device);
+            }
+
+        }
+
+        @Override
+        public void remoteDeviceRemoved(Registry registry, RemoteDevice device) {
+            deviceRemoved(device);
+        }
+
+        @Override
+        public void localDeviceAdded(Registry registry, LocalDevice device) {
+//            deviceAdded(device);
+        }
+
+        @Override
+        public void localDeviceRemoved(Registry registry, LocalDevice device) {
+//            deviceRemoved(device);
+        }
+
+        public void deviceAdded(final Device device) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (devicePopu == null) {
+                        devicePopu = new DevicePopu(VodPlayerActivity.this);
+                        devicePopu.setOnItemClickListener(new OnItemClick());
+                    }
+                    devicePopu.deviceAdded(device);
+                }
+            });
+        }
+
+        public void deviceRemoved(final Device device) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (devicePopu == null) {
+                        devicePopu = new DevicePopu(VodPlayerActivity.this);
+                        devicePopu.setOnItemClickListener(new OnItemClick());
+                    }
+                    devicePopu.deviceRemoved(device);
+                }
+            });
+        }
+    }
+
+    class OnItemClick implements AdapterView.OnItemClickListener {
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            final DeviceDisplay deviceDisplay = (DeviceDisplay) parent.getItemAtPosition(position);
+            DMCControl dmcControl = new DMCControl(deviceDisplay, upnpService, mPlayer.getOriginalUrl(), mPlayer.getProjectionScreen());
+            devicePopu.setDmcControl(dmcControl);
+        }
+    }
+
+    public static final DeviceType DMR_DEVICE_TYPE = new UDADeviceType("MediaRenderer");
+
+    public Collection<Device> getDmrDevices() {
+        if (upnpService == null) {
+            return null;
+        }
+        Collection<Device> devices = upnpService.getRegistry().getDevices(DMR_DEVICE_TYPE);
+        return devices;
+    }
+
+    public void showDevices() {
+        if (devicePopu == null) {
+            devicePopu = new DevicePopu(this);
+            devicePopu.setOnItemClickListener(new OnItemClick());
+        }
+        devicePopu.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
+    }
+
+    public void dismissDevices() {
+        if (devicePopu != null) {
+            devicePopu.dismiss();
         }
     }
 
