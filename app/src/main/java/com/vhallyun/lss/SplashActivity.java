@@ -47,7 +47,7 @@ public class SplashActivity extends AppCompatActivity {
         tvPackageName = findViewById(R.id.tv_package_name);
         tvPackageName.setText(getPackageName());
         tvSignatures = findViewById(R.id.tv_signatures);
-        tvSignatures.setText(SignatureUtil.getSignatureSHA1(this, ""));
+        tvSignatures.setText(SignatureUtil.getSignatureSHA1(this, getPackageName()));
         getPermission();
 
     }
