@@ -32,7 +32,8 @@ public class SplashActivity extends AppCompatActivity {
     EditText mEditAppid;
     EditText mEditUserid;
     CheckBox checkBox;
-    TextView tvPackageName,tvSignatures;
+    TextView tvPackageName,tvSignatures,version;
+
 
 
     @Override
@@ -41,6 +42,7 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.splash_layout);
         mEditAppid = this.findViewById(R.id.et_appid);
         mEditUserid = this.findViewById(R.id.et_userid);
+        version = this.findViewById(R.id.version);
         mEditAppid.setText("");
         mEditUserid.setText(Build.MODEL);//String.valueOf(System.currentTimeMillis())
         checkBox = findViewById(R.id.cb_env);
@@ -49,6 +51,7 @@ public class SplashActivity extends AppCompatActivity {
         tvSignatures = findViewById(R.id.tv_signatures);
         tvSignatures.setText(SignatureUtil.getSignatureSHA1(this, getPackageName()));
         getPermission();
+        version.setText(String.format("version %s",BuildConfig.VERSION_NAME));
 
     }
 
