@@ -424,4 +424,10 @@ public class LivePlayerActivity extends Activity {
         }
     }
 
+
+    int i = 0;
+    public void onSubtitleClick(View view){
+        if(mPlayer != null)
+            mPlayer.setRealtimeSubtitle(++i%2==0);
+    }
 }

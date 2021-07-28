@@ -108,4 +108,17 @@
         android:padding="10dp"
         android:layout_marginLeft="80dp"/>
 
+    <TextView
+        android:id="@+id/lang"
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="8dp"
+        android:background="#ff5555"
+        android:gravity="center"
+        android:onClick="onSubtitleClick"
+        android:text="字幕"
+        android:textColor="#ffffff" />
+
 </RelativeLayout>
